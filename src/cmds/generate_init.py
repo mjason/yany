@@ -14,5 +14,5 @@ class GenerateInit(GenerateBase):
     def run(self, args):
         with resources.path('cmds.templates', 'attribute.json') as attribute_path:
             shutil.copy(attribute_path, os.path.join('.', 'attribute.json'))
-        with resources.path('cmds.templates', '.env') as attribute_path:
+        with resources.path('cmds.templates', 'env') as attribute_path:
             shutil.copy(attribute_path, os.path.join('.', '.env'))
