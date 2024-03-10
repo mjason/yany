@@ -6,7 +6,7 @@ import cmds
 
 
 def main():
-    load_dotenv(os.path(os.getcwd(), '.env'))
+    load_dotenv(os.path.join(os.getcwd(), '.env'))
 
     parser = argparse.ArgumentParser(description='星火大模型人设工具')
     subparsers = parser.add_subparsers(help='多个指令')
