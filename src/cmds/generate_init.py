@@ -12,6 +12,7 @@ class GenerateInit(GenerateBase):
         parser.set_defaults(func=self.run)
 
     def run(self, args):
-        current_dir = os.path.dirname(__file__)
         with resources.path('cmds.templates', 'attribute.json') as attribute_path:
             shutil.copy(attribute_path, os.path.join('.', 'attribute.json'))
+        with resources.path('cmds.templates', '.env') as attribute_path:
+            shutil.copy(attribute_path, os.path.join('.', '.env'))
