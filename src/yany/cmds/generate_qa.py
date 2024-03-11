@@ -5,6 +5,7 @@ from .generate_base import GenerateBase
 from openai import AsyncOpenAI
 from tqdm import tqdm
 import asyncio
+import pandas as pd
 
 
 API_BASE = "https://api.listenai.com/v1"
@@ -27,11 +28,11 @@ class GenerateQA(GenerateBase):
 
     def add_cli(self):
         parser = self.subparsers.add_parser(
-            'qa', aliases=['qa'], help='根据 prompts.txt 来生成训练数据')
-        default_input_path = os.path.join('.', 'target/prompts.txt')
+            'qa', help='根据 prompts.txt 来生成训练数据')
+        default_input_path = os.path.join('.', 'target/prompts.xlsx')
         parser.add_argument(
             '--input_file', '-i', type=str, default=default_input_path,
-            help=f'prompts.txt 的路径，默认为：{default_input_path}')
+            help=f'prompts.xlsx 的路径，默认为：{default_input_path}')
 
         default_output_path = os.path.join('.', 'target/qa_data.jsonl')
         parser.add_argument('--output', '-o', type=str, default=default_output_path,
@@ -53,15 +54,16 @@ class GenerateQA(GenerateBase):
         return completion.choices[0].message.content
 
     async def fetch_qa(self, data_input, exception_data, qa_data):
+        settings_df = pd.read_excel(data_input, sheet_name='Settings')
+        prompt_template = settings_df.iloc[0, 0]
+
+        prompts_df = pd.read_excel(data_input, sheet_name='Prompts')
+
         question_list = []
-        pattern = r"##用户：{用户：(.+)##"
-        with open(data_input, "r") as file:
-            lines = file.readlines()
-            for line in lines:
-                s = line.replace("\n", "")
-                match = re.search(pattern, s)
-                if match:
-                    question_list.append([match.group(1).split("##")[0], s])
+        for index, row in prompts_df.iterrows():
+            sentence = prompt_template.format(
+                attr=row["attr"], input=row["input"], target=row["target"])
+            question_list.append([row['input'], sentence])
 
         qa_dict = {}
         for q in tqdm(question_list):

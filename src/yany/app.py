@@ -2,7 +2,7 @@ import argparse
 import os
 from dotenv import load_dotenv
 
-import cmds
+from .cmds import GenerateInit, GenerateQA, GeneratePrompt
 
 
 def main():
@@ -15,10 +15,10 @@ def main():
         'generate', aliases=['g'], help='生成相关文件或代码')
     subparsers_g = parser_g.add_subparsers(help='prompt 生成请求星火的 prompt 文件')
 
-    cmds.GenerateInit(subparsers)
+    GenerateInit(subparsers)
 
-    cmds.GeneratePrompt(subparsers_g)
-    cmds.GenerateQA(subparsers_g)
+    GeneratePrompt(subparsers_g)
+    GenerateQA(subparsers_g)
 
     args = parser.parse_args()
 
