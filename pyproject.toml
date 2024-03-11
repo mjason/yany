@@ -33,10 +33,10 @@ yany = "yany:main"
 [project.optional-dependencies]
 dev = ["pytest>=6.0", "flake8>=3.8"]
 
-[tool.setuptools]
-package-dir = { "" = "src" }
-packages = ["yany.cmds", "yany"]
-include-package-data = true
-
 [tool.setuptools.package-data]
 yany = ["templates/*"]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+packages = ["yany.cmds", "yany", "yany.templates"]
+include-package-data = true
