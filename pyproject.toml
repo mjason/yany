@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "yany"
-version = "0.2.7"
+version = "0.3.0"
 description = "星火人设定制工具"
 authors = [{ name = "MJ", email = "tywf91@gmail.com" }]
 license = { text = "MIT" }

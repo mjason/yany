@@ -90,6 +90,19 @@ class GenerateQA(GenerateBase):
         return completion.choices[0].message.content
 
     async def fetch_qa(self, data_input, exception_data, qa_data):
+        try:
+            with open(qa_data, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+                if lines:
+                    last_line = lines[-1]
+                    last_qa = json.loads(last_line)
+                    start_index = last_qa["index"] + 1
+                else:
+                    start_index = 0
+        except FileNotFoundError:
+            # If the file doesn't exist, start from the beginning
+            start_index = 0
+
         settings_df = pd.read_excel(data_input, sheet_name='Settings')
         prompt_template = settings_df.iloc[0, 0]
 
@@ -97,37 +110,54 @@ class GenerateQA(GenerateBase):
 
         df_template = pd.DataFrame({'Template': [prompt_template]})
 
+        current_time = datetime.now()
+        time_stamp = current_time.strftime("%Y%m%d-%H%M%S")
+
+        file_name_prefix = os.path.splitext(
+            os.path.basename(exception_data))[0]
+        base_path = os.path.dirname(exception_data)
+
+        file_name = f"{file_name_prefix}.{time_stamp}.xlsx"
+        full_save_path = os.path.join(base_path, file_name)
+
+        file_name_jsonl = f"{file_name_prefix}.{time_stamp}.jsonl"
+        full_save_jsonl_path = os.path.join(base_path, file_name_jsonl)
+
         exception_rows = []
+
         try:
             for index, row in tqdm(prompts_df.iterrows(), total=len(prompts_df)):
+                if index < start_index:
+                    continue
                 sentence = prompt_template.format(
                     attr=row["attr"], input=row["input"], target=row["target"])
                 answer = await self.request(sentence)
                 # 如果出现异常，保存数据以便重新处理
                 if answer == "" or not self.validate(answer):
                     exception_rows.append(row)
+                    if answer:
+                        qa = {"input": row["input"],
+                              "target": answer, "index": index}
+                        with open(full_save_jsonl_path, "a", encoding="utf-8") as exception_f:
+                            exception_f.write(json.dumps(
+                                qa, ensure_ascii=False) + "\n")
                 else:
-                    # 追加保存数据
-                    with open(qa_data, "a", encoding="utf-8") as f:
-                        qa = {"input": row["input"], "target": answer}
-                        f.write(json.dumps(qa, ensure_ascii=False) + "\n")
+                    qa = {"input": row["input"],
+                          "target": answer, "index": index}
+                    with open(qa_data, "a", encoding="utf-8") as qa_data_f:
+                        # 追加保存数据
+                        qa_data_f.write(json.dumps(
+                            qa, ensure_ascii=False) + "\n")
         finally:
             if exception_rows:
-                current_time = datetime.now()
-                time_stamp = current_time.strftime("%Y%m%d-%H%M%S")
 
-                file_name_prefix = os.path.splitext(
-                    os.path.basename(exception_data))[0]
-                base_path = os.path.dirname(exception_data)
-                file_name = f"{file_name_prefix}.{time_stamp}.xlsx"
-
-                full_save_path = os.path.join(base_path, file_name)
                 with pd.ExcelWriter(full_save_path, engine='openpyxl') as writer:
                     df_template.to_excel(
                         writer, sheet_name='Settings', index=False)
                     df_data = pd.DataFrame(
                         exception_rows, columns=['input', 'target', 'attr'])
-                    df_data.to_excel(writer, sheet_name='Prompts', index=False)
+                    df_data.to_excel(
+                        writer, sheet_name='Prompts', index=False)
 
     def run(self, args):
         # 输入数据路径
