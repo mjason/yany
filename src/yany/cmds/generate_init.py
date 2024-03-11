@@ -16,3 +16,5 @@ class GenerateInit(GenerateBase):
             shutil.copy(attribute_path, os.path.join('.', 'attribute.json'))
         with resources.path('yany.templates', 'env') as attribute_path:
             shutil.copy(attribute_path, os.path.join('.', '.env'))
+        with resources.path('yany.templates', 'helper.py') as attribute_path:
+            shutil.copy(attribute_path, os.path.join('.', 'helper.py'))

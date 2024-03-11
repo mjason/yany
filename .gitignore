@@ -6,3 +6,5 @@ build
 *.egg-info
 tmp
 dist
+/attribute.json
+/helper.py
