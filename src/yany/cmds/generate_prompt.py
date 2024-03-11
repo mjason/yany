@@ -26,7 +26,7 @@ class GeneratePrompt(GenerateBase):
 
     def get_default_template_path(self):
         """获取默认模板路径"""
-        with resources.path('cmds.templates', 'renshe_1000.jsonl') as renshe_1000:
+        with resources.path('yany.cmds.templates', 'renshe_1000.jsonl') as renshe_1000:
             return renshe_1000
 
     def get_default_input_file(self):
